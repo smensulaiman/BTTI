@@ -3,8 +3,18 @@ package com.btti.manager;
 import com.btti.db.DBHelper;
 import com.btti.db.QueryHelper;
 import com.btti.model.Student;
+import com.darwinsys.spdf.PDF;
+import com.darwinsys.spdf.Page;
+import com.darwinsys.spdf.Text;
+import com.darwinsys.spdf.MoveTo;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,8 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 public class Insert extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+            throws ServletException, IOException, AWTException {
+        response.setContentType("application/pdf");
+
         try (PrintWriter out = response.getWriter()) {
 
             String name = request.getParameter("student_name");
@@ -33,72 +44,59 @@ public class Insert extends HttpServlet {
             String remarks = request.getParameter("remarks");
             String picture = request.getParameter("file_picture");
 
-//            System.out.println(name);
-//            System.out.println(date);
-//            System.out.println(session);
-//            System.out.println(admission_fee);
-//            System.out.println(course_fee);
-//            System.out.println(paid);
-//            System.out.println(name);
-//            System.out.println(course_name);
-//            System.out.println(received);
-//            System.out.println(father_name);
-//            System.out.println(name);
-//            System.out.println(mother_name);
-//            System.out.println(mobile);
-//            System.out.println(birth_date);
-//            System.out.println(address);
-//            System.out.println(remarks);
-//            System.out.println(picture);
-
             Student student = new Student(name, date, session, admissionFee, courseFee, paid, courseName, received, fatherName, motherName, mobile, birthDate, address, remarks, picture);
             DBHelper.getConnection();
             int row = QueryHelper.insertStudentInfo(student);
-            
-            if(row > 0){
-                request.setAttribute("STUDENT_MODEL", student);
-                request.getRequestDispatcher("preview.jsp").forward(request, response);
-            }else{
-                request.setAttribute("status", "faild");
+
+            if (row > 0) {
+
+                PDF p = new PDF(out);
+                Page p1 = new Page(p);
+                p1.add(new MoveTo(p, 200, 700));
+                p1.add(new Text(p, "www.javatpoint.com"));
+                p1.add(new Text(p, "by Sonoo Jaiswal"));
+
+                p.add(p1);
+                p.setAuthor("Ian F. Darwin");
+                p.writePDF();
+
+                try {
+
+                    Thread.sleep(2000);
+                    Robot robot = new Robot();
+                    robot.keyPress(KeyEvent.VK_CONTROL);
+                    robot.keyPress(KeyEvent.VK_P);       
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                request.setAttribute("STATUS", "Faild");
                 request.getRequestDispatcher("index.jsp").forward(request, response);
             }
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (AWTException ex) {
+            Logger.getLogger(Insert.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (AWTException ex) {
+            Logger.getLogger(Insert.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
